@@ -12,7 +12,7 @@ Sistem şöyle çalışıyor: Bir müşteri geri bildirimi (yani metin) ile bir 
 🛠️ Teknoloji Yığını
 
 n8n: İş akışı otomasyonu ve veri akışını yönetiyor.
-Google Gemini 1.5 Flash: Hem metni hem görseli analiz ediyor.
+Google Gemini 2.5 Flash: Hem metni hem görseli analiz ediyor.
 Supabase (PostgreSQL): Bulut tabanlı ilişkisel veritabanını sağlıyor.
 JavaScript: Yapay zekadan gelen çıktıyı temizliyor, JSON formatına çeviriyor.
 Postman: Sistemi HTTP POST istekleriyle test etmek için kullanıldı.
