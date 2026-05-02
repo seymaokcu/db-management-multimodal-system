@@ -1,0 +1,334 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "b7bd9547-14db-4900-99d6-c1e567c205b3",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b43be037-8f82-49b4-8dba-50338a3d87d2",
+      "name": "Webhook",
+      "webhookId": "b7bd9547-14db-4900-99d6-c1e567c205b3"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.body.image_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "b08dde13-e344-478e-9f7f-60ea63008c49",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Sana verilen görseli ve müşterinin mesajını analiz et. Şikayet kategorisini ve duygu durumunu belirle. KESİNLİKLE sadece şu formatta JSON dön: {\"category\": \"...\", \"sentiment\": \"...\"} Müşterinin Mesajı: {{ $('Webhook').item.json.body.text }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "9297a0e7-37c2-4de4-9668-a593ebc2f1b0",
+      "name": "Message a model",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Gemini'dan gelen ham metni yakalıyoruz\nlet rawText = $input.item.json.content.parts[0].text;\n\n// 2. Başındaki \"```json\" ve sonundaki \"```\" işaretlerini temizliyoruz\nlet cleanText = rawText.replace(/```json/g, \"\").replace(/```/g, \"\").trim();\n\n// 3. Temizlenmiş düz metni, sistemin anlayacağı gerçek bir JSON objesine çeviriyoruz\nlet parsedData = JSON.parse(cleanText);\n\n// 4. Temiz veriyi bir sonraki adıma (Supabase'e) aktarıyoruz\nreturn { json: parsedData };;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        0
+      ],
+      "id": "397303b4-edba-429e-9da4-d3da62571200",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "tableId": "multimodal_analysis",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "category",
+              "fieldValue": "={{ $json.category }}"
+            },
+            {
+              "fieldId": "sentiment",
+              "fieldValue": "={{ $json.sentiment }}"
+            },
+            {
+              "fieldId": "image_url",
+              "fieldValue": "={{ $('Webhook').item.json.body.image_url }}"
+            },
+            {
+              "fieldId": "original_text",
+              "fieldValue": "={{ $('Webhook').item.json.body.text }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        976,
+        0
+      ],
+      "id": "6b9c09bd-1bac-498b-86ab-014302efa5cb",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "1vI5Z9Y4Xe2fhVRN",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "5f0ef137-ac9b-4774-a73d-f0bf1f0b6cbf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        1184,
+        0
+      ],
+      "id": "0ee0c61c-eb14-4b31-a37e-48c5f7d75ade",
+      "name": "Webhook1",
+      "webhookId": "5f0ef137-ac9b-4774-a73d-f0bf1f0b6cbf"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.body.image_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "TestProjesi/2.0"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1392,
+        0
+      ],
+      "id": "d212cae8-05b0-470c-aa46-1d5fa38a1953",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Aşağıdaki metni ve resmi analiz et. Sadece şu formatta bir JSON objesi döndür, başka hiçbir açıklama yapma:\n{\n  \"category\": \"...\",\n  \"sentiment\": \"...\"\n}\n\nMetin: {{ $json.body.text }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        1600,
+        0
+      ],
+      "id": "d0fe39e2-9e21-43cf-aa64-875d829810da",
+      "name": "Message a model1",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Gemini'dan gelen yanıtı en derinden yakalıyoruz\nconst rawContent = $json.content.parts[0].text; \n\n// Gerisi aynı: Temizlik işlemi\nconst cleanedContent = rawContent.replace(/```json/g, '').replace(/```/g, '').trim();\n\n// JSON'a dönüştür\nreturn JSON.parse(cleanedContent);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1952,
+        0
+      ],
+      "id": "4ded39df-2884-4874-a900-bfa534209f21",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "tableId": "multimodal_analysis",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "image_url",
+              "fieldValue": "={{ $('Webhook1').item.json.body.image_url }}"
+            },
+            {
+              "fieldId": "original_text",
+              "fieldValue": "={{ $('Webhook1').item.json.body.text }}"
+            },
+            {
+              "fieldId": "category",
+              "fieldValue": "={{ $json.category }}"
+            },
+            {
+              "fieldId": "sentiment",
+              "fieldValue": "={{ $json.sentiment }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        0
+      ],
+      "id": "68f96f8d-c2e5-432c-b62c-cf9109f52ab1",
+      "name": "Create a row1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "1vI5Z9Y4Xe2fhVRN",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Create a row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "10709f25d4850c905652c8803efea95499f246112f0caccbd1d2407c01cedc15"
+  }
+}
